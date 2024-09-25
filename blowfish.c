@@ -56,11 +56,6 @@ writew(int fd, uint32_t *x, size_t len)
 	return r;
 }
 
-void
-encipher()
-{
-}
-
 int
 main(int argc, char **argv)
 {
@@ -130,6 +125,11 @@ main(int argc, char **argv)
 		}
 
 		while ((rd = read(fd, buff, BUFFSZ)) > 0) {
+			if (rd < 0) {
+				fprintf(stderr, "Read error\n");
+				return 1;
+			}
+
 			if (len + rd > inlen) {
 				inlen *= 2;
 				in = realloc(in, inlen);
