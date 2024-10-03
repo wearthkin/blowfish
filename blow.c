@@ -13,7 +13,6 @@
 
 #define BUFFSZ 8192
 char *argv0 = NULL;
-void (*enc)(uint32_t *, uint32_t *) = bf_encipher;
 
 void
 usage(void)
@@ -48,37 +47,6 @@ ntohll(uint64_t x)
 }
 
 int
-peek(int fd)
-{
-	char c;
-	int x;
-	
-	x = read(fd, &c, sizeof c);
-	lseek(fd, -sizeof c, SEEK_CUR);
-	return x;
-}
-
-void
-pr(uint32_t *x, uint32_t *y)
-{
-	/*char c[8];
-	char *p = (char *) x;
-	c[0] = *p;
-	c[1] = *(p + 1);
-	c[2] = *(p + 2);
-	c[3] = *(p + 3);
-	p = (char *) y;
-	c[4] = *p;
-	c[5] = *(p + 1);
-	c[6] = *(p + 2);
-	c[7] = *(p + 3);
-	printf("%02x%02x%02x%02x %02x%02x%02x%02x", c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7]);
-	*/
-
-	printf("%08x %08x\n", *x, *y);
-}
-
-int
 main(int argc, char **argv)
 {
 	int fd = -1, kfd = -1, ofd = -1;
@@ -87,8 +55,6 @@ main(int argc, char **argv)
 	ssize_t keylen = 0;
 	ssize_t iosz;
 	uint32_t x[2], y[2];
-	uint32_t t;
-	uint64_t tmp;
 	char *kfile = "-", *ofile = NULL;
 	int decipher = 0;
 
@@ -177,12 +143,6 @@ main(int argc, char **argv)
 			}
 			memset(x, 0, sizeof x);
 			while ((iosz = read(fd, x, sizeof x) > 0)) {
-				if (iosz < 8) {
-					// zero out the rest of the buffer
-					// not really necessary but do it anyway
-					//memset(x + iosz, 0, 8 - iosz);
-				}
-
 				x[0] = ntohl(x[0]);
 				x[1] = ntohl(x[1]);
 				bf_decipher(x, x + 1);
@@ -211,11 +171,6 @@ main(int argc, char **argv)
 					x[1] = htonl(x[1]);
 					write(fd, x, sizeof x);
 					break;
-				}
-
-				if (iosz < 8) {
-					// Ensure zero-padding
-					memset(y + iosz, 0, sizeof y - iosz);
 				}
 
 				lseek(fd, -iosz, SEEK_CUR);
