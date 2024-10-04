@@ -60,7 +60,6 @@ main(int argc, char **argv)
 
 	ARGBEGIN {
 	case 'd':
-		enc = bf_decipher;
 		decipher = 1;
 		break;
 	case 'k':
